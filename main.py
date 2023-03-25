@@ -555,12 +555,14 @@ class ScreenFade():
 #create screen fades
 intro_fade = ScreenFade(1, constant.BLACK, 4)
 death_fade = ScreenFade(2, constant.PINK, 4)
+victory_fade = ScreenFade(2, constant.GREEN, 4)
 
 
 #create buttons
 start_button = button.Button(constant.SCREEN_WIDTH // 2 - 130, constant.SCREEN_HEIGHT // 2 - 150, constant.start_img, 1)
 exit_button = button.Button(constant.SCREEN_WIDTH // 2 - 110, constant.SCREEN_HEIGHT // 2 + 50, constant.exit_img, 1)
-restart_button = button.Button(constant.SCREEN_WIDTH // 2 - 100, constant.SCREEN_HEIGHT // 2 - 50, constant.restart_img, 2)
+restart_button = button.Button(constant.SCREEN_WIDTH // 2 - 100, constant.SCREEN_HEIGHT // 2 - 150, constant.restart_img, 2)
+return_button = button.Button(constant.SCREEN_WIDTH // 2 - 100, constant.SCREEN_HEIGHT // 2 + 50, constant.exit_img, 1)
 
 #create sprite groups
 enemy_group = pygame.sprite.Group()
@@ -674,7 +676,25 @@ while run:
 			constant.screen_scroll, level_complete = player.move(constant.moving_left, constant.moving_right)
 			constant.bg_scroll -= constant.screen_scroll
 			#check if player has completed the level
-			# if level_complete:
+			if level_complete:
+				constant.screen_scroll = 0
+				if victory_fade.fade():
+					if restart_button.draw(constant.screen):
+						death_fade.fade_counter = 0
+						start_intro = True
+						constant.bg_scroll = 0
+						world_data = reset_level()
+						#load in level data and create world
+						with open(f'level{constant.level}_data.csv', newline='') as csvfile:
+							reader = csv.reader(csvfile, delimiter=',')
+							for x, row in enumerate(reader):
+								for y, tile in enumerate(row):
+									world_data[x][y] = int(tile)
+						world = World()
+						player, health_bar = world.process_data(world_data)
+
+					if return_button.draw(constant.screen):
+						constant.start_game = False
 				
 		else:
 			constant.screen_scroll = 0
@@ -692,6 +712,7 @@ while run:
 								world_data[x][y] = int(tile)
 					world = World()
 					player, health_bar = world.process_data(world_data)
+
 
 
 	for event in pygame.event.get():
