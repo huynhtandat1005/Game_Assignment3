@@ -19,8 +19,8 @@ SCROLL_THRESH = 200
 ROWS = 16
 COLS = 150
 TILE_SIZE = SCREEN_HEIGHT // ROWS
-TILE_TYPES = 21
-MAX_LEVELS = 3
+TILE_TYPES = 22
+MAX_LEVELS = 2
 screen_scroll = 0
 bg_scroll = 0
 level = 1
@@ -35,6 +35,8 @@ moving_right = False
 shoot = False
 grenade = False
 grenade_thrown = False
+
+boss_exist = False
 
 
 #load music and sounds

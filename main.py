@@ -54,13 +54,19 @@ class Soldier(pygame.sprite.Sprite):
 	def __init__(self, char_type, x, y, scale, speed, ammo, grenades):
 		pygame.sprite.Sprite.__init__(self)
 		self.alive = True
-		self.char_type = char_type
+		if char_type != 'boss':
+			self.char_type = char_type
+			self.health = 100
+		else:
+			self.char_type = 'enemy'
+			self.health = 400
+
+		self.name = char_type
 		self.speed = speed
 		self.ammo = ammo
 		self.start_ammo = ammo
 		self.shoot_cooldown = 0
 		self.grenades = grenades
-		self.health = 100
 		self.max_health = self.health
 		self.direction = 1
 		self.vel_y = 0
@@ -317,6 +323,9 @@ class World():
 					elif tile == 20:#create exit
 						exit = Exit(img, x * constant.TILE_SIZE, y * constant.TILE_SIZE)
 						exit_group.add(exit)
+					elif tile == 21:#create boss
+						enemy = Soldier('boss', x * constant.TILE_SIZE, y * constant.TILE_SIZE, 1.65, 4, 40, 0)
+						enemy_group.add(enemy)
 
 		return player, health_bar
 
@@ -566,6 +575,7 @@ return_button = button.Button(constant.SCREEN_WIDTH // 2 - 100, constant.SCREEN_
 
 #create sprite groups
 enemy_group = pygame.sprite.Group()
+bosses = pygame.sprite.Group()
 bullet_group = pygame.sprite.Group()
 grenade_group = pygame.sprite.Group()
 explosion_group = pygame.sprite.Group()
@@ -630,6 +640,9 @@ while run:
 			enemy.ai()
 			enemy.update()
 			enemy.draw()
+			if enemy.name == 'boss':
+				constant.boss_exist = True
+				bosses.add(enemy)
 
 		#update and draw groups
 		bullet_group.update()
@@ -675,15 +688,20 @@ while run:
 				player.update_action(0)#0: idle
 			constant.screen_scroll, level_complete = player.move(constant.moving_left, constant.moving_right)
 			constant.bg_scroll -= constant.screen_scroll
+
+			for boss in bosses:
+				if boss.alive:
+					constant.boss_exist = True
+				else:
+					constant.boss_exist = False
 			#check if player has completed the level
 			if level_complete:
-				constant.screen_scroll = 0
-				if victory_fade.fade():
-					if restart_button.draw(constant.screen):
-						death_fade.fade_counter = 0
-						start_intro = True
-						constant.bg_scroll = 0
-						world_data = reset_level()
+				if constant.level == 1:
+					start_intro = True
+					constant.level += 1
+					bg_scroll = 0
+					world_data = reset_level()
+					if constant.level <= constant.MAX_LEVELS:
 						#load in level data and create world
 						with open(f'level{constant.level}_data.csv', newline='') as csvfile:
 							reader = csv.reader(csvfile, delimiter=',')
@@ -692,9 +710,25 @@ while run:
 									world_data[x][y] = int(tile)
 						world = World()
 						player, health_bar = world.process_data(world_data)
+				elif constant.boss_exist == False:
+					if victory_fade.fade():
+						if restart_button.draw(constant.screen):
+							constant.level = 1
+							victory_fade.fade_counter = 0
+							start_intro = True
+							constant.bg_scroll = 0
+							world_data = reset_level()
+							#load in level data and create world
+							with open(f'level{constant.level}_data.csv', newline='') as csvfile:
+								reader = csv.reader(csvfile, delimiter=',')
+								for x, row in enumerate(reader):
+									for y, tile in enumerate(row):
+										world_data[x][y] = int(tile)
+							world = World()
+							player, health_bar = world.process_data(world_data)
 
-					if return_button.draw(constant.screen):
-						constant.start_game = False
+						if return_button.draw(constant.screen):
+							constant.start_game = False
 				
 		else:
 			constant.screen_scroll = 0
