@@ -19,7 +19,7 @@ SCROLL_THRESH = 200
 ROWS = 16
 COLS = 150
 TILE_SIZE = SCREEN_HEIGHT // ROWS
-TILE_TYPES = 22
+TILE_TYPES = 24
 MAX_LEVELS = 2
 screen_scroll = 0
 bg_scroll = 0
@@ -27,16 +27,15 @@ level = 1
 start_game = False
 start_intro = False
 
-
-import pygame
 #define player action variables
 moving_left = False
 moving_right = False
 shoot = False
 grenade = False
 grenade_thrown = False
-
 boss_exist = False
+gold = 0
+silver = 0
 
 
 #load music and sounds
@@ -81,11 +80,15 @@ grenade_img = pygame.image.load('img/icons/grenade.png').convert_alpha()
 health_box_img = pygame.image.load('img/icons/health_box.png').convert_alpha()
 ammo_box_img = pygame.image.load('img/icons/ammo_box.png').convert_alpha()
 grenade_box_img = pygame.image.load('img/icons/grenade_box.png').convert_alpha()
+
 item_boxes = {
 	'Health'	: health_box_img,
 	'Ammo'		: ammo_box_img,
 	'Grenade'	: grenade_box_img
 }
+
+gold_img = pygame.image.load('img/coins/Gold/0.png')
+silver_img = pygame.image.load('img/coins/Silver/0.png')
 
 
 #define colours

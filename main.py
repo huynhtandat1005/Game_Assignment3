@@ -11,6 +11,7 @@ pygame.init()
 
 #define font
 font = pygame.font.SysFont('Futura', 30)
+victory_font = pygame.font.SysFont('Futura', 90)
 
 def draw_text(text, font, text_col, x, y):
 	img = font.render(text, True, text_col)
@@ -38,6 +39,9 @@ def reset_level():
 	decoration_group.empty()
 	water_group.empty()
 	exit_group.empty()
+	coins_group.empty()
+	constant.gold = 0
+	constant.silver = 0
 
 	#create empty tile list
 	data = []
@@ -326,6 +330,12 @@ class World():
 					elif tile == 21:#create boss
 						enemy = Soldier('boss', x * constant.TILE_SIZE, y * constant.TILE_SIZE, 1.65, 4, 40, 0)
 						enemy_group.add(enemy)
+					elif tile == 22:#create boss
+						coin = Coins('Gold', x * constant.TILE_SIZE, y * constant.TILE_SIZE)
+						coins_group.add(coin)
+					elif tile == 23:#create boss
+						coin = Coins('Silver', x * constant.TILE_SIZE, y * constant.TILE_SIZE)
+						coins_group.add(coin)
 
 		return player, health_bar
 
@@ -393,6 +403,51 @@ class ItemBox(pygame.sprite.Sprite):
 				player.grenades += 3
 			#delete the item box
 			self.kill()
+
+class Coins(pygame.sprite.Sprite):
+	def __init__(self, item_type, x, y):
+		pygame.sprite.Sprite.__init__(self)
+		self.item_type = item_type
+		self.update_time = pygame.time.get_ticks()
+		self.animation_list = []
+		self.frame_index = 0
+			#count number of files in the folder
+		num_of_frames = len(os.listdir(f'img/coins/{self.item_type}'))
+		for i in range(num_of_frames):
+			img = pygame.image.load(f'img/coins/{self.item_type}/{i}.png').convert_alpha()
+			img = pygame.transform.scale(img, (int(constant.TILE_SIZE), int(constant.TILE_SIZE)))
+			self.animation_list.append(img)
+		
+		self.image = self.animation_list[self.frame_index]
+		self.rect = self.image.get_rect()
+		self.rect.midtop = (x + constant.TILE_SIZE // 2, y + (constant.TILE_SIZE - self.image.get_height()))
+
+	def update(self):
+		self.animation()
+		#scroll
+		self.rect.x += constant.screen_scroll
+		#check if the player has picked up the box
+		if pygame.sprite.collide_rect(self, player):
+			#check what kind of box it was
+			if self.item_type == 'Gold':
+				constant.gold += 1
+			elif self.item_type == 'Silver':
+				constant.silver += 1
+			#delete the item box
+			self.kill()
+	
+	def animation(self):
+		#update animation
+		ANIMATION_COOLDOWN = 100
+		#update image depending on current frame
+		self.image = self.animation_list[self.frame_index]
+		#check if enough time has passed since the last update
+		if pygame.time.get_ticks() - self.update_time > ANIMATION_COOLDOWN:
+			self.update_time = pygame.time.get_ticks()
+			self.frame_index += 1
+		#if the animation has run out the reset back to the start
+		if self.frame_index >= len(self.animation_list):
+			self.frame_index = 0
 
 
 class HealthBar():
@@ -570,8 +625,8 @@ victory_fade = ScreenFade(2, constant.GREEN, 4)
 #create buttons
 start_button = button.Button(constant.SCREEN_WIDTH // 2 - 130, constant.SCREEN_HEIGHT // 2 - 150, constant.start_img, 1)
 exit_button = button.Button(constant.SCREEN_WIDTH // 2 - 110, constant.SCREEN_HEIGHT // 2 + 50, constant.exit_img, 1)
-restart_button = button.Button(constant.SCREEN_WIDTH // 2 - 100, constant.SCREEN_HEIGHT // 2 - 150, constant.restart_img, 2)
-return_button = button.Button(constant.SCREEN_WIDTH // 2 - 100, constant.SCREEN_HEIGHT // 2 + 50, constant.exit_img, 1)
+restart_button = button.Button(constant.SCREEN_WIDTH // 2 - 100, constant.SCREEN_HEIGHT // 2 - 50, constant.restart_img, 2)
+return_button = button.Button(constant.SCREEN_WIDTH // 2 - 100, constant.SCREEN_HEIGHT // 2 + 75, constant.exit_img, 1)
 
 #create sprite groups
 enemy_group = pygame.sprite.Group()
@@ -583,7 +638,7 @@ item_box_group = pygame.sprite.Group()
 decoration_group = pygame.sprite.Group()
 water_group = pygame.sprite.Group()
 exit_group = pygame.sprite.Group()
-
+coins_group = pygame.sprite.Group()
 
 
 #create empty tile list
@@ -627,11 +682,19 @@ while run:
 		draw_text('AMMO: ', font, constant.WHITE, 10, 35)
 		for x in range(player.ammo):
 			constant.screen.blit(constant.bullet_img, (90 + (x * 10), 40))
+
 		#show grenades
 		draw_text('GRENADES: ', font, constant.WHITE, 10, 60)
 		for x in range(player.grenades):
 			constant.screen.blit(constant.grenade_img, (135 + (x * 15), 60))
 
+		#show gold coins
+		constant.screen.blit(constant.gold_img, (10, 85))
+		draw_text(': x' + str(constant.gold), font, constant.WHITE, 40, 95)
+
+		#show silver coins
+		constant.screen.blit(constant.silver_img, (10, 110))
+		draw_text(': x' + str(constant.silver), font, constant.WHITE, 40, 120)
 
 		player.update()
 		player.draw()
@@ -652,6 +715,7 @@ while run:
 		decoration_group.update()
 		water_group.update()
 		exit_group.update()
+		coins_group.update()
 		bullet_group.draw(constant.screen)
 		grenade_group.draw(constant.screen)
 		explosion_group.draw(constant.screen)
@@ -659,6 +723,7 @@ while run:
 		decoration_group.draw(constant.screen)
 		water_group.draw(constant.screen)
 		exit_group.draw(constant.screen)
+		coins_group.draw(constant.screen)
 
 		#show intro
 		if start_intro == True:
@@ -712,6 +777,15 @@ while run:
 						player, health_bar = world.process_data(world_data)
 				elif constant.boss_exist == False:
 					if victory_fade.fade():
+
+						draw_text('VICTORY', victory_font, constant.WHITE, 280, 60)
+#show gold coins
+						constant.screen.blit(constant.gold_img, (350,125))
+						draw_text(': x' + str(constant.gold), font, constant.WHITE, 390, 135)
+
+						#show silver coins
+						constant.screen.blit(constant.silver_img, (350, 150))
+						draw_text(': x' + str(constant.silver), font, constant.WHITE, 390, 160)
 						if restart_button.draw(constant.screen):
 							constant.level = 1
 							victory_fade.fade_counter = 0
