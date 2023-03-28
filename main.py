@@ -6,7 +6,6 @@ import csv
 import button
 import constant
 
-mixer.init()
 pygame.init()
 
 #define font
@@ -208,7 +207,8 @@ class Soldier(pygame.sprite.Sprite):
 			bullet_group.add(bullet)
 			#reduce ammo
 			self.ammo -= 1
-			constant.shot_fx.play()
+			if playSOUND:
+				constant.shot_fx.play()
 
 
 	def ai(self):
@@ -558,7 +558,8 @@ class Grenade(pygame.sprite.Sprite):
 		self.timer -= 1
 		if self.timer <= 0:
 			self.kill()
-			constant.grenade_fx.play()
+			if playSOUND:
+				constant.grenade_fx.play()
 			explosion = Explosion(self.rect.x, self.rect.y, 0.5)
 			explosion_group.add(explosion)
 			#do damage to anyone that is nearby
@@ -636,10 +637,19 @@ victory_fade = ScreenFade(2, constant.GREEN, 4)
 
 
 #create buttons
-start_button = button.Button(constant.SCREEN_WIDTH // 2 - 130, constant.SCREEN_HEIGHT // 2 - 150, constant.start_img, 1)
-exit_button = button.Button(constant.SCREEN_WIDTH // 2 - 110, constant.SCREEN_HEIGHT // 2 + 50, constant.exit_img, 1)
-restart_button = button.Button(constant.SCREEN_WIDTH // 2 - 100, constant.SCREEN_HEIGHT // 2 - 50, constant.restart_img, 2)
-return_button = button.Button(constant.SCREEN_WIDTH // 2 - 100, constant.SCREEN_HEIGHT // 2 + 75, constant.exit_img, 1)
+new_game = button.Button(constant.SCREEN_WIDTH // 2 - 125, constant.SCREEN_HEIGHT // 2 - 200, constant.new_game, 1)
+about_btn = button.Button(constant.SCREEN_WIDTH // 2 - 100, constant.SCREEN_HEIGHT // 2 - 0, constant.about_img, 1)
+info = button.Button(constant.SCREEN_WIDTH // 2 - 280, constant.SCREEN_HEIGHT // 2 - 200, constant.info_img, 1)
+option_btn = button.Button(constant.SCREEN_WIDTH // 2 - 110, constant.SCREEN_HEIGHT // 2 - 100, constant.option_img, 1)
+exit_button = button.Button(constant.SCREEN_WIDTH // 2 - 80, constant.SCREEN_HEIGHT // 2 + 100, constant.exit_img, 1)
+restart_button = button.Button(constant.SCREEN_WIDTH // 2 - 130, constant.SCREEN_HEIGHT // 2 - 150, constant.restart_img, 2)
+return_button = button.Button(constant.SCREEN_WIDTH // 2 - 90, constant.SCREEN_HEIGHT // 2 + 75, constant.return_img, 1)
+back_btn = button.Button(constant.SCREEN_WIDTH // 2 - 350, constant.SCREEN_HEIGHT // 2 - 300, constant.back_img, 1)
+off_btn_s = button.Button(constant.SCREEN_WIDTH // 2 + 50, constant.SCREEN_HEIGHT // 2 + 60, constant.off_img, 1)
+off_btn_m = button.Button(constant.SCREEN_WIDTH // 2 + 50, constant.SCREEN_HEIGHT // 2 - 120, constant.off_img, 1)
+on_btn_s = button.Button(constant.SCREEN_WIDTH // 2 + 50, constant.SCREEN_HEIGHT // 2 + 60, constant.on_img, 1)
+on_btn_m = button.Button(constant.SCREEN_WIDTH // 2 + 50, constant.SCREEN_HEIGHT // 2 - 120, constant.on_img, 1)
+musicANDsound = button.Button(constant.SCREEN_WIDTH // 2 - 300, constant.SCREEN_HEIGHT // 2 - 200, constant.musicANDsound_img, 1)
 
 #create sprite groups
 enemy_group = pygame.sprite.Group()
@@ -668,8 +678,11 @@ with open(f'level{constant.level}_data.csv', newline='') as csvfile:
 world = World()
 player, health_bar = world.process_data(world_data)
 
-
-
+playMUSIC = True
+playSOUND = True
+play_sound = on_btn_s
+play_music = on_btn_m
+mixer.music.load('audio/music2.wav')
 run = True
 while run:
 
@@ -677,13 +690,56 @@ while run:
 
 	if constant.start_game == False:
 		#draw menu
-		constant.screen.fill(constant.BG)
-		#add buttons
-		if start_button.draw(constant.screen):
-			constant.start_game = True
-			start_intro = True
-		if exit_button.draw(constant.screen):
-			run = False
+		if constant.about == True:
+			constant.screen.fill(constant.BG)
+			info.draw(constant.screen)
+			#about.draw(constant.screen)
+			if back_btn.draw(constant.screen):
+				constant.about = False
+		if constant.option == True:
+			constant.screen.fill(constant.BG)
+			musicANDsound.draw(constant.screen)
+			if play_sound.draw(constant.screen):
+				pygame.time.delay(100)
+				if play_sound == on_btn_s:
+					play_sound = off_btn_s
+					playSOUND = False
+				else :
+					constant.jump_fx.play()
+					play_sound = on_btn_s
+					playSOUND = True
+			
+			if play_music.draw(constant.screen):
+				pygame.time.delay(100)
+				if play_music == on_btn_m:
+					mixer.music.pause()
+					playMUSIC = False
+					play_music = off_btn_m
+				else : 
+					mixer.music.play()
+					play_music = on_btn_m
+					playMUSIC = True
+
+			if back_btn.draw(constant.screen):
+				mixer.music.pause()
+				constant.option = False
+
+		if constant.option == False and constant.about == False:
+			constant.screen.fill(constant.BG)
+			if about_btn.draw(constant.screen):
+				constant.about = True
+			if option_btn.draw(constant.screen):
+				if playMUSIC:
+					mixer.music.play()
+				constant.option = True
+				
+
+			#add buttons
+			if new_game.draw(constant.screen):
+				constant.start_game = True
+				start_intro = True
+			if exit_button.draw(constant.screen):
+				run = False
 	else:
 		#update background
 		draw_bg()
@@ -740,6 +796,10 @@ while run:
 
 		#show intro
 		if start_intro == True:
+			if constant.play_bg == 1:
+				if playMUSIC:
+					mixer.music.play()
+					constant.play_bg = 0
 			if intro_fade.fade():
 				start_intro = False
 				intro_fade.fade_counter = 0
@@ -820,6 +880,8 @@ while run:
 		else:
 			constant.screen_scroll = 0
 			if death_fade.fade():
+				if return_button.draw(constant.screen):
+					run = False
 				if restart_button.draw(constant.screen):
 					death_fade.fade_counter = 0
 					start_intro = True
@@ -852,7 +914,8 @@ while run:
 				constant.grenade = True
 			if event.key == pygame.K_w and player.alive:
 				player.jump = True
-				constant.jump_fx.play()
+				if playSOUND:
+					constant.jump_fx.play()
 			if event.key == pygame.K_ESCAPE:
 				run = False
 

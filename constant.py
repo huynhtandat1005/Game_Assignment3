@@ -26,6 +26,11 @@ bg_scroll = 0
 level = 1
 start_game = False
 start_intro = False
+play_bg = 1
+about = False
+option = False
+play_s = True
+play_m = True
 
 #define player action variables
 moving_left = False
@@ -37,24 +42,31 @@ boss_exist = False
 gold = 0
 silver = 0
 
-
 #load music and sounds
 #pygame.mixer.music.load('audio/music2.mp3')
 #pygame.mixer.music.set_volume(0.3)
 #pygame.mixer.music.play(-1, 0.0, 5000)
 jump_fx = pygame.mixer.Sound('audio/jump.wav')
-jump_fx.set_volume(0.05)
+jump_fx.set_volume(1)
 shot_fx = pygame.mixer.Sound('audio/shot.wav')
-shot_fx.set_volume(0.05)
+shot_fx.set_volume(1)
 grenade_fx = pygame.mixer.Sound('audio/grenade.wav')
-grenade_fx.set_volume(0.05)
+grenade_fx.set_volume(1)
 
 
 #load images
 #button images
-start_img = pygame.image.load('img/start_btn.png').convert_alpha()
+new_game = pygame.image.load('img/new_game.png').convert_alpha()
+about_img = pygame.image.load('img/about_btn.png').convert_alpha()
+info_img = pygame.image.load('img/info.png').convert_alpha()
+option_img = pygame.image.load('img/option_btn.png').convert_alpha()
 exit_img = pygame.image.load('img/exit_btn.png').convert_alpha()
+return_img = pygame.image.load('img/return_btn.png').convert_alpha()
 restart_img = pygame.image.load('img/restart_btn.png').convert_alpha()
+back_img = pygame.image.load('img/back_btn.png').convert_alpha()
+musicANDsound_img = pygame.image.load('img/option_edit.png').convert_alpha()
+off_img = pygame.image.load('img/off_btn.png').convert_alpha()
+on_img = pygame.image.load('img/on_btn.png').convert_alpha()
 
 
 #background
