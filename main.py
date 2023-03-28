@@ -40,8 +40,9 @@ def reset_level():
 	water_group.empty()
 	exit_group.empty()
 	coins_group.empty()
-	constant.gold = 0
-	constant.silver = 0
+	if constant.level == 1:
+		constant.gold = 0
+		constant.silver = 0
 
 	#create empty tile list
 	data = []
@@ -381,17 +382,26 @@ class Exit(pygame.sprite.Sprite):
 class ItemBox(pygame.sprite.Sprite):
 	def __init__(self, item_type, x, y):
 		pygame.sprite.Sprite.__init__(self)
+		self.number_bullet_collide = 0
+		self.box_break = False
 		self.item_type = item_type
-		self.image = constant.item_boxes[self.item_type]
+		self.image = constant.img_list[12]
 		self.rect = self.image.get_rect()
 		self.rect.midtop = (x + constant.TILE_SIZE // 2, y + (constant.TILE_SIZE - self.image.get_height()))
 
 
 	def update(self):
+		if self.number_bullet_collide > 3:
+			self.box_break = False
+
+		if(self.box_break):
+			self.image = constant.item_boxes[self.item_type]
+		else:
+			self.image = constant.img_list[12]
 		#scroll
 		self.rect.x += constant.screen_scroll
 		#check if the player has picked up the box
-		if pygame.sprite.collide_rect(self, player):
+		if pygame.sprite.collide_rect(self, player) and self.box_break:
 			#check what kind of box it was
 			if self.item_type == 'Health':
 				player.health += 25
@@ -485,6 +495,11 @@ class Bullet(pygame.sprite.Sprite):
 		#check for collision with level
 		for tile in world.obstacle_list:
 			if tile[1].colliderect(self.rect):
+				self.kill()
+
+		for item in item_box_group:
+			if item.rect.colliderect(self.rect):
+				item.box_break = True
 				self.kill()
 
 		#check collision with characters
