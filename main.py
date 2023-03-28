@@ -59,11 +59,12 @@ class Soldier(pygame.sprite.Sprite):
 	def __init__(self, char_type, x, y, scale, speed, ammo, grenades):
 		pygame.sprite.Sprite.__init__(self)
 		self.alive = True
+		self.char_type = char_type
 		if char_type != 'boss':
-			self.char_type = char_type
+			
 			self.health = 100
 		else:
-			self.char_type = 'enemy'
+
 			self.health = 400
 
 		self.name = char_type
@@ -391,9 +392,6 @@ class ItemBox(pygame.sprite.Sprite):
 
 
 	def update(self):
-		if self.number_bullet_collide > 3:
-			self.box_break = False
-
 		if(self.box_break):
 			self.image = constant.item_boxes[self.item_type]
 		else:
